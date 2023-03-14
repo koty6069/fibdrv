@@ -26,6 +26,27 @@ static DEFINE_MUTEX(fib_mutex);
 
 static long long fib_sequence(long long k)
 {
+    /* Bottom-up Fast Doubling */
+    long long a = 0, b = 1;
+    int lz = __builtin_clzll(k);
+
+    for (int i = 63 - lz; i >= 0; i--) {
+        long long t1 = a * (2 * b - a);
+        long long t2 = b * b + a * a;
+
+        a = t1;
+        b = t2;
+        if (k & 1UL << i) {
+            t1 = a + b;
+            a = b;
+            b = t1;
+        }
+    }
+    return a;
+}
+
+static long long fib_sequence_dp(long long k)
+{
     /* FIXME: C99 variable-length array (VLA) is not allowed in Linux kernel. */
     long long f[k + 2];
 
